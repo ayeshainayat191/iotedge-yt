@@ -1,5 +1,6 @@
 # IoT Edge
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/aa8979499c3045159a32d528a0c11441)](https://app.codacy.com/gh/ayeshainayat191/iotedge-yt?utm_source=github.com&utm_medium=referral&utm_content=ayeshainayat191/iotedge-yt&utm_campaign=Badge_Grade)
 [![Build Status](https://dev.azure.com/msazure/One/_apis/build/status/Custom/Azure/IoT/Edge/Core/Azure-IoT-Edge-Core%20CI?branchName=main)](https://dev.azure.com/msazure/One/_build/latest?definitionId=45137&branchName=main)
 
 Welcome to the home of IoT Edge.
