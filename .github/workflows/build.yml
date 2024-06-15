@@ -47,8 +47,8 @@ jobs:
         shell: powershell
         run: |
           Write-Host "Starting SonarQube analysis..."
-          .\.sonar\scanner\dotnet-sonarscanner begin /key:"iotedge" -d:sonar.token="${{ secrets.SONAR_TOKEN }}" -d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
+          .\.sonar\scanner\dotnet-sonarscanner begin /k:"iotedge" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
           Write-Host "Building the project..."
           dotnet build
           Write-Host "Completing SonarQube analysis..."
-          .\.sonar\scanner\dotnet-sonarscanner end -d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
