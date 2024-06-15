@@ -50,11 +50,12 @@ jobs:
           .\.sonar\scanner\dotnet-sonarscanner begin /key:"iotedge" -d:sonar.token="${{ secrets.SONAR_TOKEN }}" -d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
           
           Write-Host "Building the project..."
-          dotnet build
+          dotnet build > build.log
           
           $LASTEXITCODE = $?
           if ($LASTEXITCODE -ne 0) {
             Write-Error "dotnet build failed with exit code $LASTEXITCODE"
+            Get-Content -Path .\build.log | ForEach-Object { Write-Host $_ }
             exit $LASTEXITCODE
           }
           
@@ -64,6 +65,7 @@ jobs:
           $LASTEXITCODE = $?
           if ($LASTEXITCODE -ne 0) {
             Write-Error "SonarQube analysis failed with exit code $LASTEXITCODE"
+            Get-Content -Path .\build.log | ForEach-Object { Write-Host $_ }
             exit $LASTEXITCODE
           }
 
@@ -73,4 +75,3 @@ jobs:
         run: |
           Write-Host "Displaying the last 50 lines of the build log for debugging:"
           Get-Content -Path .\build.log -Tail 50 | ForEach-Object { Write-Host $_ }
-
