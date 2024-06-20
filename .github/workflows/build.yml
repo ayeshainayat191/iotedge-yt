@@ -48,10 +48,11 @@ jobs:
           $url = "${{ secrets.SONAR_HOST_URL }}/api/server/version"
           Write-Host "Testing connection to SonarQube server at $url"
           try {
-            $response = Invoke-WebRequest -Uri $url
+            $response = Invoke-WebRequest -Uri $url -UseBasicParsing
             Write-Host "Connection successful. Server version: $($response.Content)"
           } catch {
             Write-Error "Failed to connect to SonarQube server at $url"
+            Write-Error $_.Exception.Message
             exit 1
           }
 
@@ -89,4 +90,8 @@ jobs:
         shell: powershell
         run: |
           Write-Host "Displaying the last 50 lines of the build log for debugging:"
-          Get-Content -Path .\build.log -Tail 50 | ForEach-Object { Write-Host $_ }
+          if (Test-Path -Path .\build.log) {
+            Get-Content -Path .\build.log -Tail 50 | ForEach-Object { Write-Host $_ }
+          } else {
+            Write-Host "Build log not found."
+          }
