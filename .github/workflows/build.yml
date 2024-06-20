@@ -5,7 +5,6 @@ on:
     branches:
       - main
 
-
 jobs:
   build:
     name: Build and analyze
@@ -14,17 +13,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0  # Shallow clones should be disabled for better relevancy of analysis
+
       - name: Set up JDK 17
         uses: actions/setup-java@v1
         with:
           java-version: 17
+
       - name: Cache SonarQube packages
         uses: actions/cache@v1
         with:
           path: ~\.sonar\cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
+
       - name: Cache SonarQube scanner
         id: cache-sonar-scanner
         uses: actions/cache@v1
@@ -32,15 +34,59 @@ jobs:
           path: .\.sonar\scanner
           key: ${{ runner.os }}-sonar-scanner
           restore-keys: ${{ runner.os }}-sonar-scanner
+
       - name: Install SonarQube scanner
         if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
         shell: powershell
         run: |
           New-Item -Path .\.sonar\scanner -ItemType Directory
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
+
+      - name: Test SonarQube Server Connection
+        shell: powershell
+        run: |
+          $url = "${{ secrets.SONAR_HOST_URL }}/api/server/version"
+          Write-Host "Testing connection to SonarQube server at $url"
+          try {
+            $response = Invoke-WebRequest -Uri $url
+            Write-Host "Connection successful. Server version: $($response.Content)"
+          } catch {
+            Write-Error "Failed to connect to SonarQube server at $url"
+            exit 1
+          }
+
       - name: Build and analyze
         shell: powershell
         run: |
+          Write-Host "Starting SonarQube analysis..."
           .\.sonar\scanner\dotnet-sonarscanner begin /k:"iotedge" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
-          dotnet build
+          
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "SonarQube scanner failed to start with exit code $LASTEXITCODE"
+            exit $LASTEXITCODE
+          }
+          
+          Write-Host "Building the project..."
+          dotnet build > build.log
+          
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "dotnet build failed with exit code $LASTEXITCODE"
+            Get-Content -Path .\build.log | ForEach-Object { Write-Host $_ }
+            exit $LASTEXITCODE
+          }
+          
+          Write-Host "Completing SonarQube analysis..."
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "SonarQube analysis failed with exit code $LASTEXITCODE"
+            Get-Content -Path .\build.log | ForEach-Object { Write-Host $_ }
+            exit $LASTEXITCODE
+          }
+
+      - name: Display build log
+        if: failure()
+        shell: powershell
+        run: |
+          Write-Host "Displaying the last 50 lines of the build log for debugging:"
+          Get-Content -Path .\build.log -Tail 50 | ForEach-Object { Write-Host $_ }
