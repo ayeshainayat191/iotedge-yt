@@ -1,1 +1,6 @@
-coverage.xml
+steps:
+  - name: Upload coverage report to Codacy
+    uses: codacy/codacy-coverage-action@v3
+    with:
+      coverage-reports: 'coverage.xml'  # Path to your coverage report
+      project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
