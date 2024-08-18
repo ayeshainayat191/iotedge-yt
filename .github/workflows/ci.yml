@@ -22,9 +22,12 @@ jobs:
       run: dotnet restore
 
     - name: Run tests and generate coverage
-      run: dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura
+      run: dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=./coverage/
+
+    - name: List files in coverage directory
+      run: ls -al ./coverage
 
     - name: Upload coverage to Codacy
-      run: bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r ./coverage.cobertura.xml
+      run: bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r ./coverage/coverage.cobertura.xml
       env:
         CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
